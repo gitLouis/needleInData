@@ -1,0 +1,611 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+A Needle in a Data Haystack
+\end_layout
+
+\begin_layout Author
+Sraya Louis 03697210/7
+\end_layout
+
+\begin_layout Date
+26-Nov-2016
+\end_layout
+
+\begin_layout Enumerate
+Frequent itemsets, Association Rules
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+\begin_inset Formula $conf(\emptyset\rightarrow A)=\frac{sup\left(\emptyset\cup A\right)}{sup\left(\emptyset\right)}=\frac{sup\left(A\right)}{1}=sup\left(A\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+\begin_inset Formula $conf\left(A\rightarrow\emptyset\right)=\frac{sup\left(\emptyset\cup A\right)}{sup\left(A\right)}=\frac{sup\left(A\right)}{sup\left(A\right)}=1$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+Yes, it is possible.
+ for instance, if the baskets are 
+\begin_inset Formula $\left\{ a\right\} ,\left\{ a,b\right\} ,\left\{ b,c\right\} $
+\end_inset
+
+ and we are looking on the given rules for the sets: 
+\begin_inset Formula $A=\left\{ a\right\} $
+\end_inset
+
+, 
+\begin_inset Formula $B=\left\{ b\right\} $
+\end_inset
+
+, 
+\begin_inset Formula $C=\left\{ c\right\} $
+\end_inset
+
+.
+ then direct calculation gives: 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+\begin_inset Formula $conf\left(A\rightarrow B\right)=\frac{sup\left(\left\{ a,b\right\} \right)}{sup\left(a\right)}=0.5$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $conf\left(B\rightarrow C\right)=\frac{sup\left(\left\{ b,c\right\} \right)}{sup\left(b\right)}=0.5$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $conf\left(A\rightarrow C\right)=\frac{sup\left(\left\{ a,c\right\} \right)}{sup\left(a\right)}=0$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+Iteration #1, five itesets of size 1 and their confidence: 
+\begin_inset Formula $\begin{cases}
+a & .5\\
+b & .6\\
+c & .7\\
+d & .8\\
+e & .5
+\end{cases}$
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Iteration #2, 
+\begin_inset Formula ${5 \choose 2}$
+\end_inset
+
+ itesets of size 2 and their confidence:
+\begin_inset Formula $\begin{cases}
+ab & .2\\
+ac & .4\\
+ad & .3\\
+ae & .3\\
+bc & .4\\
+bd & .5\\
+be & .1\\
+cd & .5\\
+ce & .4\\
+de & .4
+\end{cases}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Iteration , 
+\begin_inset Formula ${5 \choose 3}$
+\end_inset
+
+ itesets of size 3 avoiding those including subsets we already know have
+ low confidence 
+\begin_inset Formula $\left\{ ab,be\right\} $
+\end_inset
+
+ :
+\begin_inset Formula $\begin{cases}
+acd & .2\\
+ace & .2\\
+ade & .2\\
+bcd & .3\\
+cde & .3
+\end{cases}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There are 
+\bar under
+no
+\bar default
+ itemsets of size 4 with confidence above threshold: Any such set must include
+ 
+\begin_inset Formula $bcd$
+\end_inset
+
+ or 
+\begin_inset Formula $cde$
+\end_inset
+
+ but any addition will include also subset that is was already calculated
+ as low confince.
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+pseudo-code:
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+function CheckAssociationRule(X,t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	input:  X - a frequent itemset
+\end_layout
+
+\begin_layout Plain Layout
+
+			t - confidence threshold ,i.e., 'minconf'
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	output: Result - A list of confident association rules.
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	Initiate result = [] % list of rules with high confidence.
+\end_layout
+
+\begin_layout Plain Layout
+
+	Initiate checkedRules = [] %list of rules already checked.
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	foreach item i in X.
+\end_layout
+
+\begin_layout Plain Layout
+
+		RecursiveCheckAssociationRule(X
+\backslash
+i --> i)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	% recursive function .
+\end_layout
+
+\begin_layout Plain Layout
+
+	Function RecursiveCheckAssociationRule(A,B)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if not checkedRules(A,B) & conf(A --> B) >= t
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(A --> B)
+\end_layout
+
+\begin_layout Plain Layout
+
+			foreach item i in X
+\end_layout
+
+\begin_layout Plain Layout
+
+				checkAssociationRule(X
+\backslash
+i --> i)
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		checkedRules.add(A,B)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\end_deeper
+\begin_layout Enumerate
+Strange Baskets
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+In the following, 
+\begin_inset Formula $j$
+\end_inset
+
+ is the number of basket and by definition 
+\begin_inset Formula $j$
+\end_inset
+
+ is also the largest integer in the set.
+ 
+\end_layout
+
+\begin_layout Standard
+For this question, first note that an itemset 
+\begin_inset Formula $X$
+\end_inset
+
+ is in a basket 
+\begin_inset Formula $j$
+\end_inset
+
+ iff 
+\begin_inset Formula $lcm\left(X\right)|j$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset Formula $conf\left(X\rightarrow Y\right)=1\text{ if and only if }\forall y\in Y\,\exists x\in X\,s.t.\,x|y$
+\end_inset
+
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+e.g.
+ 
+\begin_inset Formula $conf\left(\left\{ 8,10\right\} \rightarrow\left\{ 4,5\right\} \right)=\frac{sup\left(\{4,5,8,10\}\right)}{sup\left\{ 8,10\right\} }=\frac{\left|\left\{ j\,:\,lcm\left(\{4,5,8,10\}\right)|j\right\} \right|}{\left|\left\{ j\,:\,lcm\left(\{8,10\}\right)|j\right\} \right|}=1$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+\begin_inset Formula $sup\left(a,b\right)\geq5\iff lcm\left(a,b\right)\le20$
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Hence, frequent items are those are all singletons of items smaller than
+ 
+\begin_inset Formula $20$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Similiary, frequent pairs 
+\begin_inset Formula $X$
+\end_inset
+
+ must have 
+\begin_inset Formula $lcm\left(X\right)\leq20$
+\end_inset
+
+ : which is all pairs with 1 or 2 and the pairs 
+\begin_inset Formula $\left\{ \left(3,4\right),\left(3,5\right),\left(3,6\right),\left(4,5\right)\right\} $
+\end_inset
+
+.
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+\begin_inset Formula $sup(X)\geq5\iff lcm(X)\leq20$
+\end_inset
+
+ , hence to output all maximal frequent itemsets we need itemsets with 
+\begin_inset Formula $lcm(X)\leq20$
+\end_inset
+
+ s.t.
+ for every 
+\begin_inset Formula $i\notin X$
+\end_inset
+
+ it holds that 
+\begin_inset Formula $lcm(X\cup\left\{ i\right\} )>20$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+for each number 
+\begin_inset Formula $x\leq20$
+\end_inset
+
+ we can add to the itemset of all numbers dividing it, unless 
+\begin_inset Formula $x$
+\end_inset
+
+ is a dividor of another number 
+\begin_inset Formula $y\leq20$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+\bar under
+20
+\series default
+\bar default
+,1,2,4,5,10
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+19
+\series default
+\bar default
+,1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+18
+\series default
+\bar default
+,2,3,6,9,1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+17
+\series default
+\bar default
+,1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+16
+\series default
+\bar default
+,8,4,2,1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+15
+\series default
+\bar default
+,5,3,1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+14
+\series default
+\bar default
+,7,2,1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+13
+\series default
+\bar default
+,1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+12
+\series default
+\bar default
+,6,4,3,2,1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\bar under
+11
+\series default
+\bar default
+,1
+\end_layout
+
+\end_deeper
+\end_deeper
+\end_body
+\end_document
