@@ -2,43 +2,89 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import time
+import json
 
 LIMIT_OF_PRODUCT_PER_CATEGORY = 2
-SLEEP_BETWEEN_REQUESTS_SECONDS = 6
+SLEEP_BETWEEN_REQUESTS_SECONDS = 0.5
+NA = 'NA'
 
-def parseProductPage(pageUrl : str) -> int:
+def parseRatingReviews(productBS ) -> dict:
+    script = productBS.findAll('script')[1].string
+    ratingDiv = productBS.find("div", { "class" : "BVSubmissionPopupContainer"})
+    rating =  NA if not ratingDiv else ratingDiv.title
+    reviews = dict()
+    for review in productBS.find_all("div", { "class" : "BVRRReviewDisplayStyle5BodyContentPrimary"}):
+        review.find("div", { "class" : "BVRRNickname"})
+        reviews[review.find("div", { "class" : "BVRRNickname"})] = review.find("span", { "class" : "BVRRReviewText"})
+
+
+
+
+def parseProductPage(pageUrl : str) -> dict:
     print('Parsing product page: ' + pageUrl + '...')
-    CategoryRequest = requests.get(pageUrl)
+    productOutput = dict()
     time.sleep(SLEEP_BETWEEN_REQUESTS_SECONDS)
     productRequest = requests.get(pageUrl)
-    productPage = BeautifulSoup(productRequest.text, "lxml")
+    productBS = BeautifulSoup(productRequest.text, "lxml")
+    productOutput['title'] = productBS.find(id = 'productName').text
+    sizesTag = productBS.find(id = "productSizes")
+    productOutput['sizes'] = NA if not sizesTag else sizesTag.text
+    productOutput['description'] = productBS.find(id = "productUpper").find(id = "productDesignShort").text
 
-    print('product done!')
 
-def parseCategoryPage(pageUrl : str) -> int:
+    productOutput['imgSrc'] = productBS.find(id = "productUpper").find("img")["src"]
+    productOutput['reviews'] = parseRatingReviews(productBS)
+
+    #print('product done!')
+    return productOutput
+
+def parseCategoryPage(pageUrl : str) -> dict:
     productCounter = 0
     print("Parsing category page: " + pageUrl + '...')
     time.sleep(SLEEP_BETWEEN_REQUESTS_SECONDS)
     CategoryRequest = requests.get(pageUrl)
-    categoryPage = BeautifulSoup(CategoryRequest.text, "lxml")
+    categoryBS = BeautifulSoup(CategoryRequest.text, "lxml")
+    categoryOutput = dict()
 
-    for productTag in categoryPage.find_all("div", { "class" : re.compile("^searchResult")}):
-        if productCounter>LIMIT_OF_PRODUCT_PER_CATEGORY:
+    for productTag in categoryBS.find_all("div", { "class" : re.compile("^searchResult")}):
+        if productCounter>=LIMIT_OF_PRODUCT_PER_CATEGORY:
             break
-        parseProductPage('http://www.arcteryx.com' + productTag.find('a')['href']
-)
-
+        productURL = 'http://www.arcteryx.com/' + productTag.find('a')['href']
+        categoryOutput[productURL] = parseProductPage('http://www.arcteryx.com/' + productTag.find('a')['href'])
         productCounter = productCounter+1
 
     print('Category done! ' + str(productCounter) + ' products.')
-    return
+
+    return categoryOutput
 
 
 r = requests.get('http://www.arcteryx.com/Home.aspx?country=il&language=en')
 mainPage = BeautifulSoup(r.text, "lxml")
+mainResults = dict()
 
 for categoryTag in mainPage.find_all("dd", { "class" : re.compile("^category")}):
-    print(categoryTag.next['href'])
-    parseCategoryPage('http://www.arcteryx.com' + categoryTag.next['href'])
+    gender = categoryTag.find_parent('li' , {"class":re.compile("^top-nav")}).find("h3").text
+    mainCategoryName = categoryTag.parent.find('dd', {'class' : 'heading'}).text
+    categoryName = categoryTag.text
+    categoryProductsOutput = parseCategoryPage('http://www.arcteryx.com' + categoryTag.next['href'])
+    try:
+        mainResults[gender][mainCategoryName][categoryName] = categoryProductsOutput
+    except KeyError:
+        try:
+            mainResults[gender][mainCategoryName] = dict()
+            mainResults[gender][mainCategoryName][categoryName] = categoryProductsOutput
+
+        except KeyError:
+            mainResults[gender] = dict()
+            mainResults[gender][mainCategoryName] = dict()
+            mainResults[gender][mainCategoryName][categoryName] = categoryProductsOutput
+
+print('Saving as Json file...')
+with open('result_2_product_per_cat.json', 'w') as fp:
+    json.dump(mainResults, fp)
+
+fp.close()
+print('Done!')
+
 
 
