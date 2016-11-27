@@ -4,20 +4,9 @@ import re
 import time
 import json
 
-LIMIT_OF_PRODUCT_PER_CATEGORY = 2
-SLEEP_BETWEEN_REQUESTS_SECONDS = 0.5
+LIMIT_OF_PRODUCT_PER_CATEGORY = 3
+SLEEP_BETWEEN_REQUESTS_SECONDS = 4
 NA = 'NA'
-
-def parseRatingReviews(productBS ) -> dict:
-    script = productBS.findAll('script')[1].string
-    ratingDiv = productBS.find("div", { "class" : "BVSubmissionPopupContainer"})
-    rating =  NA if not ratingDiv else ratingDiv.title
-    reviews = dict()
-    for review in productBS.find_all("div", { "class" : "BVRRReviewDisplayStyle5BodyContentPrimary"}):
-        review.find("div", { "class" : "BVRRNickname"})
-        reviews[review.find("div", { "class" : "BVRRNickname"})] = review.find("span", { "class" : "BVRRReviewText"})
-
-
 
 
 def parseProductPage(pageUrl : str) -> dict:
@@ -29,11 +18,11 @@ def parseProductPage(pageUrl : str) -> dict:
     productOutput['title'] = productBS.find(id = 'productName').text
     sizesTag = productBS.find(id = "productSizes")
     productOutput['sizes'] = NA if not sizesTag else sizesTag.text
+    productWeightTag =  productBS.find(id = "productWeight")
+    productOutput['sizes'] = NA if not productWeightTag else productWeightTag.text
     productOutput['description'] = productBS.find(id = "productUpper").find(id = "productDesignShort").text
-
-
     productOutput['imgSrc'] = productBS.find(id = "productUpper").find("img")["src"]
-    productOutput['reviews'] = parseRatingReviews(productBS)
+    #productOutput['reviews'] = parseRatingReviews(productBS)
 
     #print('product done!')
     return productOutput
@@ -80,7 +69,7 @@ for categoryTag in mainPage.find_all("dd", { "class" : re.compile("^category")})
             mainResults[gender][mainCategoryName][categoryName] = categoryProductsOutput
 
 print('Saving as Json file...')
-with open('result_2_product_per_cat.json', 'w') as fp:
+with open('result_3_product_per_cat.json', 'w') as fp:
     json.dump(mainResults, fp)
 
 fp.close()
